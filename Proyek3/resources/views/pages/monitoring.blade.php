@@ -13,39 +13,37 @@
             <th>Nama Kurir</th>
             <th>Nama Pelanggan</th>
             <th style="width:180px">Status</th>
-            <th style="width:200px">Waktu Verifikasi</th>
+            <th style="width:220px">Waktu Verifikasi</th>
           </tr>
         </thead>
-        <tbody>
-          @php
-            $rows = [
-              ['kurir'=>'Adinata','pelanggan'=>'Ryder','status'=>'Berhasil','waktu'=>'10 Feb 2026, 14:43'],
-              ['kurir'=>'Rion','pelanggan'=>'Adeeva','status'=>'Berhasil','waktu'=>'11 Feb 2026, 10:03'],
-              ['kurir'=>'Satya','pelanggan'=>'Oliver','status'=>'Belum Dikirim','waktu'=>'-'],
-              ['kurir'=>'Ayres','pelanggan'=>'Zeeva','status'=>'Dalam Perjalanan','waktu'=>'-'],
-            ];
-          @endphp
 
-          @foreach($rows as $r)
+        <tbody>
+          @forelse($pengantarans as $pg)
           <tr>
-            <td>{{ $r['kurir'] }}</td>
-            <td>{{ $r['pelanggan'] }}</td>
+            <td>{{ $pg->kurir?->nama ?? '-' }}</td>
+            <td>{{ $pg->pesanan?->pelanggan?->nama ?? '-' }}</td>
             <td>
-              @if($r['status']=='Berhasil')
+              @if($pg->status === 'berhasil')
                 <span class="badge-pill b-success">Berhasil</span>
-              @elseif($r['status']=='Belum Dikirim')
-                <span class="badge-pill b-warning">Belum Dikirim</span>
-              @else
+              @elseif($pg->status === 'dalam_perjalanan')
                 <span class="badge-pill b-trip">Dalam Perjalanan</span>
+              @else
+                <span class="badge-pill b-warning">Belum Dikirim</span>
               @endif
             </td>
-            <td>{{ $r['waktu'] }}</td>
+            <td>
+              {{ $pg->waktu_verifikasi ? \Carbon\Carbon::parse($pg->waktu_verifikasi)->format('d M Y, H:i') : '-' }}
+            </td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Belum ada data pengantaran.</td>
+          </tr>
+          @endforelse
         </tbody>
+
       </table>
     </div>
-
   </div>
 </div>
 @endsection

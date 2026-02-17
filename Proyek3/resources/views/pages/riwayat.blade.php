@@ -10,44 +10,42 @@
       <table class="table align-middle mb-0">
         <thead class="text-muted">
           <tr>
-            <th style="width:140px">Tanggal</th>
+            <th style="width:160px">Tanggal</th>
             <th>Kurir</th>
             <th>Pelanggan</th>
             <th style="width:170px">Status</th>
-            <th style="width:200px">Waktu</th>
+            <th style="width:220px">Waktu Verifikasi</th>
           </tr>
         </thead>
-        <tbody>
-          @php
-            $rows = [
-              ['tgl'=>'10 Feb 2026','kurir'=>'Adinata','pelanggan'=>'Ryder','status'=>'Berhasil','waktu'=>'10 Feb 2026, 14:43'],
-              ['tgl'=>'11 Feb 2026','kurir'=>'Rion','pelanggan'=>'Adeeva','status'=>'Berhasil','waktu'=>'11 Feb 2026, 10:03'],
-              ['tgl'=>'17 Feb 2026','kurir'=>'Aileen','pelanggan'=>'Ozora','status'=>'Belum Dikirim','waktu'=>'-'],
-              ['tgl'=>'17 Feb 2026','kurir'=>'Neandro','pelanggan'=>'Hazel','status'=>'Dalam Perjalanan','waktu'=>'-'],
-            ];
-          @endphp
 
-          @foreach($rows as $r)
+        <tbody>
+          @forelse($pengantarans as $pg)
           <tr>
-            <td>{{ $r['tgl'] }}</td>
-            <td>{{ $r['kurir'] }}</td>
-            <td>{{ $r['pelanggan'] }}</td>
+            <td>{{ $pg->created_at?->format('d M Y') }}</td>
+            <td>{{ $pg->kurir?->nama ?? '-' }}</td>
+            <td>{{ $pg->pesanan?->pelanggan?->nama ?? '-' }}</td>
             <td>
-              @if($r['status']=='Berhasil')
+              @if($pg->status === 'berhasil')
                 <span class="badge-pill b-success">Berhasil</span>
-              @elseif($r['status']=='Belum Dikirim')
-                <span class="badge-pill b-warning">Belum Dikirim</span>
-              @else
+              @elseif($pg->status === 'dalam_perjalanan')
                 <span class="badge-pill b-trip">Dalam Perjalanan</span>
+              @else
+                <span class="badge-pill b-warning">Belum Dikirim</span>
               @endif
             </td>
-            <td>{{ $r['waktu'] }}</td>
+            <td>
+              {{ $pg->waktu_verifikasi ? \Carbon\Carbon::parse($pg->waktu_verifikasi)->format('d M Y, H:i') : '-' }}
+            </td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">Belum ada riwayat pengantaran.</td>
+          </tr>
+          @endforelse
         </tbody>
+
       </table>
     </div>
-
   </div>
 </div>
 @endsection

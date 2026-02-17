@@ -21,24 +21,22 @@
             <th style="width:180px">No HP</th>
           </tr>
         </thead>
+
         <tbody>
-          @php
-            $rows = [
-              ['nama'=>'Ryder','alamat'=>'JL. PU BARAT GABUSKULON','hp'=>'0812-3456-7890'],
-              ['nama'=>'Adeeva','alamat'=>'Jalan Raya Sumur Watu Blok Pedati','hp'=>'0821-9876-5432'],
-              ['nama'=>'Oliver','alamat'=>'JL. PU RANCAHAN','hp'=>'0857-2345-6789'],
-              ['nama'=>'Zeeva','alamat'=>'Drutenkulon','hp'=>'0813-4567-8901'],
-            ];
-          @endphp
-          @foreach($rows as $i=>$r)
+          @forelse($pelanggans as $i => $p)
           <tr>
-            <td>{{ $i+1 }}</td>
-            <td>{{ $r['nama'] }}</td>
-            <td>{{ $r['alamat'] }}</td>
-            <td>{{ $r['hp'] }}</td>
+            <td>{{ $i + 1 }}</td>
+            <td>{{ $p->nama }}</td>
+            <td>{{ $p->alamat }}</td>
+            <td>{{ $p->no_hp ?? '-' }}</td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Belum ada data pelanggan.</td>
+          </tr>
+          @endforelse
         </tbody>
+
       </table>
     </div>
   </div>

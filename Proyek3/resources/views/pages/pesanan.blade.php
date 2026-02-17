@@ -20,36 +20,32 @@
             <th style="width:160px">Status</th>
           </tr>
         </thead>
-        <tbody>
-          @php
-            $rows = [
-              ['nama'=>'Ryder','id'=>'P001','alamat'=>'JL. PU BARAT GABUSKULON','status'=>'Berhasil'],
-              ['nama'=>'Adeeva','id'=>'P002','alamat'=>'Jalan Raya Sumur Watu Blok Pedati','status'=>'Berhasil'],
-              ['nama'=>'Oliver','id'=>'P003','alamat'=>'JL. PU RANCAHAN','status'=>'Proses'],
-              ['nama'=>'Zeeva','id'=>'P004','alamat'=>'Drutenkulon','status'=>'Belum Dikirim'],
-            ];
-          @endphp
 
-          @foreach($rows as $r)
+        <tbody>
+          @forelse($pesanans as $ps)
           <tr>
-            <td>{{ $r['nama'] }}</td>
-            <td>{{ $r['id'] }}</td>
-            <td>{{ $r['alamat'] }}</td>
+            <td>{{ $ps->pelanggan?->nama ?? '-' }}</td>
+            <td>{{ $ps->kode }}</td>
+            <td>{{ $ps->pelanggan?->alamat ?? '-' }}</td>
             <td>
-              @if($r['status']=='Berhasil')
+              @if($ps->status === 'berhasil')
                 <span class="badge-pill b-success">Berhasil</span>
-              @elseif($r['status']=='Proses')
+              @elseif($ps->status === 'proses')
                 <span class="badge-pill b-process">Proses</span>
               @else
                 <span class="badge-pill b-warning">Belum Dikirim</span>
               @endif
             </td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Belum ada data pesanan.</td>
+          </tr>
+          @endforelse
         </tbody>
+
       </table>
     </div>
-
   </div>
 </div>
 @endsection

@@ -21,22 +21,15 @@
             <th style="width:220px">Aksi</th>
           </tr>
         </thead>
+
         <tbody>
-          @php
-            $rows = [
-              ['id'=>'KUR001','nama'=>'Adinata','status'=>'Aktif'],
-              ['id'=>'KUR002','nama'=>'Rion','status'=>'Aktif'],
-              ['id'=>'KUR003','nama'=>'Satya','status'=>'Non Aktif'],
-              ['id'=>'KUR004','nama'=>'Ayres','status'=>'Aktif'],
-            ];
-          @endphp
-          @foreach($rows as $i=>$r)
+          @forelse($kurirs as $i => $kurir)
           <tr>
-            <td>{{ $i+1 }}</td>
-            <td>{{ $r['id'] }}</td>
-            <td>{{ $r['nama'] }}</td>
+            <td>{{ $i + 1 }}</td>
+            <td>{{ $kurir->kode }}</td>
+            <td>{{ $kurir->nama }}</td>
             <td>
-              @if($r['status']=='Aktif')
+              @if($kurir->status === 'aktif')
                 <span class="badge-pill b-active">Aktif</span>
               @else
                 <span class="badge-pill b-nonactive">Non Aktif</span>
@@ -47,8 +40,13 @@
               <button class="btn-soft btn-dark">Hapus</button>
             </td>
           </tr>
-          @endforeach
+          @empty
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">Belum ada data kurir.</td>
+          </tr>
+          @endforelse
         </tbody>
+
       </table>
     </div>
 
