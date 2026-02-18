@@ -148,19 +148,38 @@
   <main class="main">
     {{-- HEADER / TOPBAR --}}
     <header class="topbar">
-      <button class="btn btn-link text-secondary p-0" title="Notifikasi">
-        <i class="bi bi-bell fs-4"></i>
-      </button>
-
-      <div class="dropdown">
-        <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-expanded="false" title="Akun">
-          <i class="bi bi-person-circle fs-4"></i>
+      @auth
+        <button class="btn btn-link text-secondary p-0" title="Notifikasi">
+          <i class="bi bi-bell fs-4"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
-        </ul>
-      </div>
+
+        <div class="dropdown">
+          <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-expanded="false" title="Akun">
+            <i class="bi bi-person-circle fs-4"></i>
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="px-3 py-2 text-muted small">
+              {{ auth()->user()->name ?? 'Admin' }}
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="dropdown-item text-danger">Logout</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+      @endauth
+
+      @guest
+        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-secondary">
+          Login
+        </a>
+      @endguest
     </header>
+
 
     {{-- CONTENT --}}
     <section class="content">
