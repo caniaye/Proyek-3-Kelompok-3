@@ -109,6 +109,10 @@
 </head>
 <body>
 
+{{-- =========================
+     KALO SUDAH LOGIN
+========================= --}}
+@auth
 <div class="app-wrap">
   {{-- SIDEBAR --}}
   <aside class="sidebar">
@@ -146,52 +150,57 @@
 
   {{-- MAIN --}}
   <main class="main">
-    {{-- HEADER / TOPBAR --}}
+    {{-- TOPBAR --}}
     <header class="topbar">
-      @auth
-        <button class="btn btn-link text-secondary p-0" title="Notifikasi">
-          <i class="bi bi-bell fs-4"></i>
+      <button class="btn btn-link text-secondary p-0" title="Notifikasi">
+        <i class="bi bi-bell fs-4"></i>
+      </button>
+
+      <div class="dropdown">
+        <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-expanded="false" title="Akun">
+          <i class="bi bi-person-circle fs-4"></i>
         </button>
 
-        <div class="dropdown">
-          <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-expanded="false" title="Akun">
-            <i class="bi bi-person-circle fs-4"></i>
-          </button>
-
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li class="px-3 py-2 text-muted small">
-              {{ auth()->user()->name ?? 'Admin' }}
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="dropdown-item text-danger">Logout</button>
-              </form>
-            </li>
-          </ul>
-        </div>
-      @endauth
-
-      @guest
-        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-secondary">
-          Login
-        </a>
-      @endguest
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li class="px-3 py-2 text-muted small">
+            {{ auth()->user()->name ?? 'Admin' }}
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form method="POST" action="{{ route('logout') }}">
+              @csrf
+              <button type="submit" class="dropdown-item text-danger">Logout</button>
+            </form>
+          </li>
+        </ul>
+      </div>
     </header>
-
 
     {{-- CONTENT --}}
     <section class="content">
       @yield('content')
     </section>
 
-    {{-- FOOTER --}}
     <footer>
       © {{ date('Y') }} Pangkalan LPG 3KG — AAS ASNIAH
     </footer>
   </main>
 </div>
+@endauth
+
+
+{{-- =========================
+     KALO BELUM LOGIN
+     (cuma nampilin content login)
+========================= --}}
+@guest
+  <main style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;">
+    <div style="width:min(980px, 100%);">
+      @yield('content')
+    </div>
+  </main>
+@endguest
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 @stack('scripts')

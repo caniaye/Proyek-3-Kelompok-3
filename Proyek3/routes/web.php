@@ -17,7 +17,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
@@ -25,5 +24,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
-
 });

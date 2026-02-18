@@ -44,53 +44,45 @@
 @endpush
 
 @section('content')
-<div class="panel">
-  <div class="login-wrap">
+<div class="login-wrap">
 
-    {{-- Kiri --}}
-    <div class="login-box">
-      <div class="text-center">
-        <div class="fw-bold text-primary">
-          [Logo / Gambar LPG di sini]
-        </div>
-      </div>
+  {{-- Kiri --}}
+  <div class="login-box">
+    <div class="text-center w-100">
+      <img
+        src="{{ asset('image/Logo Berdiri.png') }}"
+        alt="Logo Pangkalan LPG 3KG"
+        style="max-width: 320px; width: 100%; height: auto;"
+      />
     </div>
-
-    {{-- Kanan --}}
-    <div class="login-card">
-      <h1 class="display-6 fw-bold text-secondary mb-4">ADMIN</h1>
-
-      <form method="POST" action="{{ route('login.post') }}">
-        @csrf
-
-        <div class="mb-3">
-          <label class="form-label text-muted">Email</label>
-          <input class="form-control inp"
-                 type="email"
-                 name="email"
-                 value="{{ old('email') }}"
-                 required>
-          @error('email')
-            <div class="text-danger small mt-1">{{ $message }}</div>
-          @enderror
-        </div>
-
-        <div class="mb-4">
-          <label class="form-label text-muted">Password</label>
-          <input class="form-control inp"
-                 type="password"
-                 name="password"
-                 required>
-          @error('password')
-            <div class="text-danger small mt-1">{{ $message }}</div>
-          @enderror
-        </div>
-
-        <button class="btn-login" type="submit">Login</button>
-      </form>
-
-    </div>
-
   </div>
+
+  {{-- Kanan --}}
+  <div class="login-card">
+    <h1 class="display-6 fw-bold text-secondary mb-4">ADMIN</h1>
+
+    <form method="POST" action="{{ route('login.post') }}">
+      @csrf
+
+      <div class="mb-3">
+        <label class="form-label text-muted">Email</label>
+        <input class="form-control inp" type="email" name="email" value="{{ old('email') }}" required>
+        @error('email')
+          <div class="text-danger small mt-1">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label text-muted">Password</label>
+        <input class="form-control inp" type="password" name="password" required>
+        @error('password')
+          <div class="text-danger small mt-1">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <button class="btn-login" type="submit">Login</button>
+    </form>
+  </div>
+
 </div>
 @endsection
