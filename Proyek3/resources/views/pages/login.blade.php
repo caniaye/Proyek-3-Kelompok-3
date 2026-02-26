@@ -50,7 +50,7 @@
   <div class="login-box">
     <div class="text-center w-100">
       <img
-        src="{{ asset('image/Logo Berdiri.png') }}"
+        src="{{ asset('image/Logo berdiri no bg.png') }}"
         alt="Logo Pangkalan LPG 3KG"
         style="max-width: 320px; width: 100%; height: auto;"
       />

@@ -7,32 +7,35 @@
       <div class="col-md-3">
         <div class="card-soft text-center">
           <div>Total Pesanan</div>
-          <div class="display-6 fw-bold">523</div>
+          <div class="display-6 fw-bold">{{ $totalPesanan }}</div>
         </div>
       </div>
+
       <div class="col-md-3">
         <div class="card-soft text-center">
           <div>Total Kurir</div>
-          <div class="display-6 fw-bold">13</div>
+          <div class="display-6 fw-bold">{{ $totalKurir }}</div>
         </div>
       </div>
+
       <div class="col-md-3">
         <div class="card-soft text-center">
           <div>Pengantaran Hari Ini</div>
-          <div class="display-6 fw-bold">20</div>
+          <div class="display-6 fw-bold">{{ $pengantaranHariIni }}</div>
         </div>
       </div>
+
       <div class="col-md-3">
         <div class="card-soft text-center">
           <div>Status</div>
           <div class="d-flex justify-content-center gap-4 mt-2">
             <div>
               <div class="small text-muted">Berhasil</div>
-              <div class="fs-4 fw-bold">4</div>
+              <div class="fs-4 fw-bold">{{ $statusBerhasil }}</div>
             </div>
             <div>
               <div class="small text-muted">Proses</div>
-              <div class="fs-4 fw-bold">2</div>
+              <div class="fs-4 fw-bold">{{ $statusProses }}</div>
             </div>
           </div>
         </div>
@@ -55,30 +58,42 @@
             </tr>
           </thead>
           <tbody>
-            @php
-              $rows = [
-                ['resi'=>'GCV001','kurir'=>'Adinata','tujuan'=>'Blok Kedungwaru','status'=>'Berhasil','tgl'=>'03-02-2026'],
-                ['resi'=>'GCV002','kurir'=>'Rion','tujuan'=>'JL. PU Barat Gabuskulon','status'=>'Berhasil','tgl'=>'03-02-2026'],
-                ['resi'=>'GCV003','kurir'=>'Satya','tujuan'=>'Jl. Raya Gabuswetan','status'=>'Proses','tgl'=>'03-02-2026'],
-                ['resi'=>'GCV004','kurir'=>'Ayres','tujuan'=>'Drutenkulon','status'=>'Berhasil','tgl'=>'03-02-2026'],
-              ];
-            @endphp
-            @foreach($rows as $i=>$r)
+            @forelse($pengantaranTerbaru as $i => $p)
+              @php
+                // Tujuan: ambil dari pelanggan kalau ada alamat, kalau belum ada kolom alamat ya fallback "-"
+                $tujuan = $p->pesanan?->pelanggan?->alamat ?? '-';
+
+                // Status label (sesuaikan enum kamu)
+                $statusLabel = match($p->status){
+                  'berhasil' => 'Berhasil',
+                  'dalam_perjalanan' => 'Proses',
+                  default => 'Belum Dikirim',
+                };
+
+                $badgeClass = match($p->status){
+                  'berhasil' => 'b-success',
+                  'dalam_perjalanan' => 'b-process',
+                  default => 'b-warning',
+                };
+              @endphp
+
               <tr>
                 <td>{{ $i+1 }}</td>
-                <td>{{ $r['resi'] }}</td>
-                <td>{{ $r['kurir'] }}</td>
-                <td>{{ $r['tujuan'] }}</td>
+                <td>{{ $p->resi }}</td>
+                <td>{{ $p->kurir?->nama ?? '-' }}</td>
+                <td>{{ $tujuan }}</td>
                 <td>
-                  @if($r['status']=='Berhasil')
-                    <span class="badge-pill b-success">Berhasil</span>
-                  @else
-                    <span class="badge-pill b-process">Proses</span>
-                  @endif
+                  <span class="badge-pill {{ $badgeClass }}">{{ $statusLabel }}</span>
                 </td>
-                <td>{{ $r['tgl'] }}</td>
+                <td>{{ optional($p->created_at)->format('d-m-Y') }}</td>
               </tr>
-            @endforeach
+            @empty
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  Belum ada data pengantaran.
+                </td>
+              </tr>
+            @endforelse
           </tbody>
         </table>
       </div>
