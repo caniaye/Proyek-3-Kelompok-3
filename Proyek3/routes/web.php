@@ -25,9 +25,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/pelanggan/{pelanggan}', [PelangganController::class, 'show'])->name('pelanggan.show');
     Route::put('/pelanggan/{pelanggan}', [PelangganController::class, 'update'])->name('pelanggan.update');
 
-    // Lainnya
+    // Kurir (CRUD)
     Route::get('/kurir', [KurirController::class, 'index'])->name('kurir.index');
+    Route::post('/kurir', [KurirController::class, 'store'])->name('kurir.store');
+    Route::put('/kurir/{kurir}', [KurirController::class, 'update'])->name('kurir.update');
+    Route::delete('/kurir/{kurir}', [KurirController::class, 'destroy'])->name('kurir.destroy');
+
+    // Lainnya
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+
+    // Kurir
+Route::get('/kurir', [KurirController::class, 'index'])->name('kurir.index');
+Route::post('/kurir', [KurirController::class, 'store'])->name('kurir.store');
+Route::put('/kurir/{kurir}', [KurirController::class, 'update'])->name('kurir.update');
+
+// "Hapus" = set resign (soft delete versi kamu)
+Route::delete('/kurir/{kurir}', [KurirController::class, 'destroy'])->name('kurir.destroy');
 });

@@ -17,7 +17,6 @@ class Kurir extends Model
         'status', // aktif / nonaktif
     ];
 
-    // 1 kurir punya banyak pengantaran
     public function pengantarans()
     {
         return $this->hasMany(Pengantaran::class);
