@@ -5,12 +5,12 @@
 <style>
   .row-selectable { cursor: pointer; }
 
-  /* Highlight pasti keliatan: apply ke semua TD */
+  /* highlight pasti keliatan: apply ke semua TD */
   tr.row-selected > td {
     background-color: rgba(120, 200, 190, 0.25) !important;
   }
 
-  /* Biar makin jelas ada garis kiri */
+  /* garis kiri biar jelas */
   tr.row-selected > td:first-child {
     box-shadow: inset 4px 0 0 rgba(60, 170, 150, 0.9);
   }
@@ -22,7 +22,6 @@
     <div class="alert alert-success mb-3">{{ session('success') }}</div>
   @endif
 
-  {{-- Tombol kanan atas: Tambah + Lihat Detail --}}
   <div class="d-flex justify-content-end gap-2 mb-3">
     <button class="btn-soft btn-green" data-bs-toggle="modal" data-bs-target="#modalTambahPelanggan">
       Tambah
@@ -48,10 +47,10 @@
         </thead>
 
         <tbody>
-          @forelse($pelanggans as $i => $p)
-          <tr class="row-selectable"
-              data-detail-url="{{ route('pelanggan.show', $p->id) }}">
-            <td>{{ $i + 1 }}</td>
+          @forelse($pelanggans as $p)
+          <tr class="row-selectable" data-detail-url="{{ route('pelanggan.show', $p->id) }}">
+            {{-- ✅ No ikut database --}}
+            <td>{{ $p->id }}</td>
 
             <td>
               <div class="d-flex align-items-center gap-2">
@@ -137,6 +136,7 @@
         if (btnDetail) btnDetail.disabled = !selectedUrl;
       });
 
+      // double click langsung ke detail (opsional)
       row.addEventListener('dblclick', function () {
         const url = row.dataset.detailUrl;
         if (url) window.location.href = url;
