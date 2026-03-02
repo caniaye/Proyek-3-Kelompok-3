@@ -19,7 +19,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Pelanggan
     Route::get('/pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+    Route::post('/pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
+    Route::get('/pelanggan/{pelanggan}', [PelangganController::class, 'show'])->name('pelanggan.show');
+    Route::put('/pelanggan/{pelanggan}', [PelangganController::class, 'update'])->name('pelanggan.update');
+
+    // Lainnya
     Route::get('/kurir', [KurirController::class, 'index'])->name('kurir.index');
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
