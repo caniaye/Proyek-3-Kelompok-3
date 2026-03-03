@@ -16,18 +16,31 @@ class Pesanan extends Model
         'pelanggan_id',
         'jumlah_tabung',
         'tanggal_pesan',
-        'status', // belum_dikirim / proses / berhasil
+        'status', // belum_dikirim / proses / berhasil / dibatalkan
     ];
 
-    // 1 pesanan milik 1 pelanggan
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
     }
 
-    // 1 pesanan punya 1 pengantaran
     public function pengantaran()
     {
         return $this->hasOne(Pengantaran::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(PesananItem::class);
+    }
+
+    public function qty3kg(): int
+    {
+        return (int) ($this->items()->where('jenis_tabung', '3kg')->value('qty') ?? 0);
+    }
+
+    public function qty12kg(): int
+    {
+        return (int) ($this->items()->where('jenis_tabung', '12kg')->value('qty') ?? 0);
     }
 }

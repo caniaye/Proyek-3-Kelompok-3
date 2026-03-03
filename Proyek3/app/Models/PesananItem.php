@@ -5,27 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pengantaran extends Model
+class PesananItem extends Model
 {
     use HasFactory;
 
-    protected $table = 'pengantarans';
+    protected $table = 'pesanan_items';
 
     protected $fillable = [
-        'resi',
         'pesanan_id',
-        'kurir_id', // nullable
-        'status',
-        'waktu_verifikasi',
+        'jenis_tabung', // '3kg' | '12kg'
+        'qty',
     ];
 
     public function pesanan()
     {
         return $this->belongsTo(Pesanan::class);
-    }
-
-    public function kurir()
-    {
-        return $this->belongsTo(Kurir::class);
     }
 }

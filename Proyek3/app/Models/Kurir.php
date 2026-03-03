@@ -14,11 +14,20 @@ class Kurir extends Model
     protected $fillable = [
         'kode',
         'nama',
-        'status', // aktif / nonaktif
+        'foto',
+        'status', // aktif / nonaktif / resign
     ];
 
     public function pengantarans()
     {
         return $this->hasMany(Pengantaran::class);
+    }
+
+    public function fotoUrl(): string
+    {
+        if ($this->foto) {
+            return asset('storage/' . $this->foto);
+        }
+        return asset('image/default-avatar.png'); // kamu sudah punya di public/image
     }
 }

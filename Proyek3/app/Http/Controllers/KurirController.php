@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Kurir;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class KurirController extends Controller
 {
@@ -13,37 +14,36 @@ class KurirController extends Controller
         return view('pages.kurir', compact('kurirs'));
     }
 
-    // ✅ Tambah: kode otomatis KUR001, KUR002, dst
+    // Tambah: kode otomatis + foto optional
     public function store(Request $request)
     {
         $request->validate([
             'nama'   => 'required|string|max:255',
-            // status untuk kerja/libur
             'status' => 'required|in:aktif,nonaktif',
+            'foto'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // ambil kode terakhir berdasarkan angka terbesar di belakang "KUR"
         $lastKode = Kurir::orderByRaw("CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC")->value('kode');
+        $lastNumber = $lastKode ? (int) substr($lastKode, 3) : 0;
 
-        $lastNumber = 0;
-        if ($lastKode) {
-            $lastNumber = (int) substr($lastKode, 3); // "KUR003" => 3
+        $newKode = 'KUR' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+
+        $pathFoto = null;
+        if ($request->hasFile('foto')) {
+            $pathFoto = $request->file('foto')->store('kurir', 'public');
         }
-
-        $newNumber = $lastNumber + 1;
-        $newKode = 'KUR' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
         Kurir::create([
             'kode'   => $newKode,
             'nama'   => $request->nama,
-            'status' => $request->status, // aktif/nonaktif
+            'status' => $request->status,
+            'foto'   => $pathFoto,
         ]);
 
         return redirect()->route('kurir.index')->with('success', 'Kurir berhasil ditambahkan!');
     }
 
-    // ✅ Edit: hanya boleh aktif/nonaktif (kerja/libur)
-    // kalau sudah resign, tidak boleh diubah lagi
+    // Edit: hanya nama + status kerja/libur + foto optional
     public function update(Request $request, Kurir $kurir)
     {
         if ($kurir->status === 'resign') {
@@ -51,23 +51,28 @@ class KurirController extends Controller
         }
 
         $validated = $request->validate([
-            // kode boleh diedit (kalau mau dikunci bilang aja)
-            'kode'   => 'required|string|max:20|unique:kurirs,kode,' . $kurir->id,
             'nama'   => 'required|string|max:255',
-            'status' => 'required|in:aktif,nonaktif', // kerja/libur
+            'status' => 'required|in:aktif,nonaktif',
+            'foto'   => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        if ($request->hasFile('foto')) {
+            // hapus foto lama kalau ada
+            if ($kurir->foto && Storage::disk('public')->exists($kurir->foto)) {
+                Storage::disk('public')->delete($kurir->foto);
+            }
+            $validated['foto'] = $request->file('foto')->store('kurir', 'public');
+        }
 
         $kurir->update($validated);
 
         return redirect()->route('kurir.index')->with('success', 'Kurir berhasil diupdate!');
     }
 
-    // ✅ "Hapus" tapi tidak delete → status jadi resign
+    // "Hapus" => resign (bukan delete)
     public function destroy(Kurir $kurir)
     {
         $kurir->update(['status' => 'resign']);
-
-        return redirect()->route('kurir.index')
-            ->with('success', 'Kurir berhasil dihapus (status menjadi resign).');
+        return redirect()->route('kurir.index')->with('success', 'Kurir berhasil dihapus (status menjadi resign).');
     }
 }

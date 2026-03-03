@@ -10,13 +10,14 @@ use App\Http\Controllers\PesananController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\RiwayatController;
 
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn () => redirect()->route('login'));
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Pelanggan
@@ -25,22 +26,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/pelanggan/{pelanggan}', [PelangganController::class, 'show'])->name('pelanggan.show');
     Route::put('/pelanggan/{pelanggan}', [PelangganController::class, 'update'])->name('pelanggan.update');
 
-    // Kurir (CRUD)
+    // Kurir
     Route::get('/kurir', [KurirController::class, 'index'])->name('kurir.index');
     Route::post('/kurir', [KurirController::class, 'store'])->name('kurir.store');
     Route::put('/kurir/{kurir}', [KurirController::class, 'update'])->name('kurir.update');
     Route::delete('/kurir/{kurir}', [KurirController::class, 'destroy'])->name('kurir.destroy');
 
-    // Lainnya
+    // Pesanan
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
+    Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
+    Route::get('/pesanan/{pesanan}', [PesananController::class, 'show'])->name('pesanan.show');
+
+    // Batalkan (status dibatalkan)
+    Route::post('/pesanan/{pesanan}/cancel', [PesananController::class, 'cancel'])->name('pesanan.cancel');
+
+    // Lainnya
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
-
-    // Kurir
-Route::get('/kurir', [KurirController::class, 'index'])->name('kurir.index');
-Route::post('/kurir', [KurirController::class, 'store'])->name('kurir.store');
-Route::put('/kurir/{kurir}', [KurirController::class, 'update'])->name('kurir.update');
-
-// "Hapus" = set resign (soft delete versi kamu)
-Route::delete('/kurir/{kurir}', [KurirController::class, 'destroy'])->name('kurir.destroy');
 });
