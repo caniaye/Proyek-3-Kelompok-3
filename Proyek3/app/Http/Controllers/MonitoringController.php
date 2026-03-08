@@ -16,8 +16,8 @@ class MonitoringController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $kurirs = Kurir::whereIn('status', ['aktif','nonaktif']) // resign jangan tampil
-            ->orderBy('nama','asc')
+        $kurirs = Kurir::whereIn('status', ['aktif', 'nonaktif'])
+            ->orderBy('nama', 'asc')
             ->get();
 
         return view('pages.monitoring', compact('pengantarans', 'kurirs'));
@@ -31,23 +31,22 @@ class MonitoringController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $pengantaran) {
-
-            // update pengantaran
             $pengantaran->update([
                 'kurir_id' => $request->kurir_id,
                 'status'   => $request->status,
                 'waktu_verifikasi' => $request->status === 'berhasil' ? now() : null,
             ]);
 
-            // sinkron status pesanan
             $pesanan = $pengantaran->pesanan;
-            if (!$pesanan) return;
+            if (!$pesanan) {
+                return;
+            }
 
             $map = [
-                'belum_dikirim'     => 'belum_dikirim',
-                'dalam_perjalanan'  => 'proses',
-                'berhasil'          => 'berhasil',
-                'dibatalkan'        => 'dibatalkan',
+                'belum_dikirim'    => 'belum_dikirim',
+                'dalam_perjalanan' => 'dalam_perjalanan',
+                'berhasil'         => 'berhasil',
+                'dibatalkan'       => 'dibatalkan',
             ];
 
             $pesanan->update([

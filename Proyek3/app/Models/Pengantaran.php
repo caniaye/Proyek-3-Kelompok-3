@@ -14,8 +14,8 @@ class Pengantaran extends Model
     protected $fillable = [
         'resi',
         'pesanan_id',
-        'kurir_id', // nullable
-        'status',   // belum_dikirim / dalam_perjalanan / berhasil / dibatalkan
+        'kurir_id',
+        'status',
         'waktu_verifikasi',
     ];
 

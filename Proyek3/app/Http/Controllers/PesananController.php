@@ -34,12 +34,12 @@ class PesananController extends Controller
         ]);
 
         if ((int)$request->qty_3kg + (int)$request->qty_12kg <= 0) {
-            return back()->withErrors(['qty_3kg' => 'Minimal pilih 1 tabung (3kg/12kg).'])->withInput();
+            return back()->withErrors([
+                'qty_3kg' => 'Minimal pilih 1 tabung (3kg/12kg).'
+            ])->withInput();
         }
 
         DB::transaction(function () use ($request) {
-
-            // kode otomatis P001, P002...
             $lastKode = Pesanan::orderByRaw("CAST(SUBSTRING(kode, 2) AS UNSIGNED) DESC")->value('kode');
             $lastNumber = $lastKode ? (int) substr($lastKode, 1) : 0;
             $newKode = 'P' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
@@ -54,18 +54,26 @@ class PesananController extends Controller
                 'status'        => 'belum_dikirim',
             ]);
 
-            // simpan detail jenis tabung ke pesanan_items
             PesananItem::updateOrCreate(
-                ['pesanan_id' => $pesanan->id, 'jenis_tabung' => '3kg'],
-                ['qty' => (int)$request->qty_3kg]
+                [
+                    'pesanan_id'   => $pesanan->id,
+                    'jenis_tabung' => '3kg'
+                ],
+                [
+                    'qty' => (int)$request->qty_3kg
+                ]
             );
 
             PesananItem::updateOrCreate(
-                ['pesanan_id' => $pesanan->id, 'jenis_tabung' => '12kg'],
-                ['qty' => (int)$request->qty_12kg]
+                [
+                    'pesanan_id'   => $pesanan->id,
+                    'jenis_tabung' => '12kg'
+                ],
+                [
+                    'qty' => (int)$request->qty_12kg
+                ]
             );
 
-            // otomatis buat pengantaran (kurir dipilih nanti)
             $lastResi = Pengantaran::orderByRaw("CAST(SUBSTRING(resi, 4) AS UNSIGNED) DESC")->value('resi');
             $lastResiNum = $lastResi ? (int) substr($lastResi, 3) : 0;
             $newResi = 'GCV' . str_pad($lastResiNum + 1, 3, '0', STR_PAD_LEFT);
@@ -88,18 +96,18 @@ class PesananController extends Controller
         return view('pages.pesanan_detail', compact('pesanan'));
     }
 
-    // batalkan pesanan (admin)
     public function cancel(Pesanan $pesanan)
     {
         DB::transaction(function () use ($pesanan) {
-            // kalau sudah berhasil, jangan boleh dibatalkan
-            if ($pesanan->status === 'berhasil') {
+            // tidak boleh dibatalkan kalau sudah berhasil, dibatalkan, atau dalam perjalanan
+            if (in_array($pesanan->status, ['berhasil', 'dibatalkan', 'dalam_perjalanan'])) {
                 return;
             }
 
-            $pesanan->update(['status' => 'dibatalkan']);
+            $pesanan->update([
+                'status' => 'dibatalkan'
+            ]);
 
-            // sekalian tandai pengantaran dibatalkan juga (biar monitoring konsisten)
             if ($pesanan->pengantaran) {
                 $pesanan->pengantaran->update([
                     'status' => 'dibatalkan',

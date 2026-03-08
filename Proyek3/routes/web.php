@@ -42,10 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::patch('/monitoring/{pengantaran}', [MonitoringController::class, 'update'])->name('monitoring.update');
 
-    // Batalkan (status dibatalkan)
-    Route::post('/pesanan/{pesanan}/cancel', [PesananController::class, 'cancel'])->name('pesanan.cancel');
-
-    // Lainnya
-    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    // Riwayat
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });

@@ -78,8 +78,8 @@
               <div class="kpi-mini">{{ $statusBerhasil }}</div>
             </div>
             <div>
-              <div class="small kpi-sub">Proses</div>
-              <div class="kpi-mini">{{ $statusProses }}</div>
+              <div class="small kpi-sub">Dalam Perjalanan</div>
+              <div class="kpi-mini">{{ $statusDalamPerjalanan }}</div>
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
                 // Status label (sesuaikan enum kamu)
                 $statusLabel = match($p->status){
                   'berhasil' => 'Berhasil',
-                  'dalam_perjalanan' => 'Proses',
+                  'dalam_perjalanan' => 'Dalam Perjalanan',
                   default => 'Belum Dikirim',
                 };
 

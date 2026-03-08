@@ -52,8 +52,8 @@
             <td>
               @if($ps->status === 'berhasil')
                 <span class="badge-pill b-success">Berhasil</span>
-              @elseif($ps->status === 'proses')
-                <span class="badge-pill b-process">Proses</span>
+              @elseif($ps->status === 'dalam_perjalanan')
+                <span class="badge-pill b-trip">Dalam Perjalanan</span>
               @elseif($ps->status === 'dibatalkan')
                 <span class="badge-pill b-nonactive">Dibatalkan</span>
               @else

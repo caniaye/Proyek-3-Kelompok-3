@@ -16,7 +16,7 @@ class Pesanan extends Model
         'pelanggan_id',
         'jumlah_tabung',
         'tanggal_pesan',
-        'status', // belum_dikirim / proses / berhasil / dibatalkan
+        'status',
     ];
 
     public function pelanggan()
@@ -36,11 +36,11 @@ class Pesanan extends Model
 
     public function qty3kg(): int
     {
-        return (int) ($this->items()->where('jenis_tabung', '3kg')->value('qty') ?? 0);
+        return (int) ($this->items()->where('jenis_tabung', '3kg')->value('qty') ?: 0);
     }
 
     public function qty12kg(): int
     {
-        return (int) ($this->items()->where('jenis_tabung', '12kg')->value('qty') ?? 0);
+        return (int) ($this->items()->where('jenis_tabung', '12kg')->value('qty') ?: 0);
     }
 }

@@ -30,8 +30,8 @@
         <div class="mb-2"><b>Status Pesanan:</b>
           @if($pesanan->status === 'berhasil')
             <span class="badge-pill b-success">Berhasil</span>
-          @elseif($pesanan->status === 'proses')
-            <span class="badge-pill b-process">Proses</span>
+          @elseif($pesanan->status === 'dalam_perjalanan')
+            <span class="badge-pill b-trip">Dalam Perjalanan</span>
           @elseif($pesanan->status === 'dibatalkan')
             <span class="badge-pill b-nonactive">Dibatalkan</span>
           @else
@@ -39,8 +39,8 @@
           @endif
         </div>
 
-        {{-- tombol batalkan --}}
-        @if($pesanan->status !== 'berhasil' && $pesanan->status !== 'dibatalkan')
+        {{-- tombol batalkan hanya muncul kalau belum dikirim --}}
+        @if($pesanan->status === 'belum_dikirim')
           <form method="POST" action="{{ route('pesanan.cancel', $pesanan->id) }}" onsubmit="return confirm('Yakin batalkan pesanan ini?')">
             @csrf
             @method('PATCH')

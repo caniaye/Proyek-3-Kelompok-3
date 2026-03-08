@@ -20,7 +20,7 @@ class DashboardController extends Controller
 
         // Status pengantaran (ambil yang sesuai enum di migration pengantarans)
         $statusBerhasil = Pengantaran::where('status', 'berhasil')->count();
-        $statusProses   = Pengantaran::where('status', 'dalam_perjalanan')->count(); // "proses" versi pengantaran
+        $statusDalamPerjalanan   = Pengantaran::where('status', 'dalam_perjalanan')->count(); // "dalam_perjalanan" versi pengantaran
 
         // Tabel pengantaran terbaru (ambil 10 terbaru)
         // sekalian join relasi kurir & pesanan->pelanggan
@@ -34,7 +34,7 @@ class DashboardController extends Controller
             'totalKurir',
             'pengantaranHariIni',
             'statusBerhasil',
-            'statusProses',
+            'statusDalamPerjalanan',
             'pengantaranTerbaru'
         ));
     }

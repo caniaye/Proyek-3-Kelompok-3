@@ -71,7 +71,7 @@ class DemoSeeder extends Seeder
             'pelanggan_id' => $pelanggan2->id,
             'jumlah_tabung' => 2,
             'tanggal_pesan' => now(),
-            'status' => 'proses'
+            'status' => 'dalam_perjalanan'
         ]);
 
         $pesanan3 = Pesanan::create([
