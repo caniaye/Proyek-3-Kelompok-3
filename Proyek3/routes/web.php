@@ -36,6 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
     Route::get('/pesanan/{pesanan}', [PesananController::class, 'show'])->name('pesanan.show');
+    Route::patch('/pesanan/{pesanan}/batal', [PesananController::class, 'cancel'])->name('pesanan.cancel');
+
+    // Monitoring
+    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+    Route::patch('/monitoring/{pengantaran}', [MonitoringController::class, 'update'])->name('monitoring.update');
 
     // Batalkan (status dibatalkan)
     Route::post('/pesanan/{pesanan}/cancel', [PesananController::class, 'cancel'])->name('pesanan.cancel');

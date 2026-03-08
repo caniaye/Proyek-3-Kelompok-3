@@ -15,7 +15,7 @@ class Pengantaran extends Model
         'resi',
         'pesanan_id',
         'kurir_id', // nullable
-        'status',
+        'status',   // belum_dikirim / dalam_perjalanan / berhasil / dibatalkan
         'waktu_verifikasi',
     ];
 

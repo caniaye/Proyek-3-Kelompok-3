@@ -13,7 +13,7 @@ class PesananController extends Controller
 {
     public function index()
     {
-        $pesanans = Pesanan::with(['pelanggan', 'items'])
+        $pesanans = Pesanan::with(['pelanggan'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -24,62 +24,59 @@ class PesananController extends Controller
 
     public function store(Request $request)
     {
+        $maxDate = date('Y-m-d', strtotime('+1 month'));
+
         $request->validate([
-            'pelanggan_id'  => 'required|exists:pelanggans,id',
-            'qty_3kg'       => 'nullable|integer|min:0|max:100',
-            'qty_12kg'      => 'nullable|integer|min:0|max:100',
-            'tanggal_pesan' => 'required|date|after_or_equal:today',
+            'pelanggan_id' => 'required|exists:pelanggans,id',
+            'qty_3kg'      => 'required|integer|min:0|max:100',
+            'qty_12kg'     => 'required|integer|min:0|max:100',
+            'tanggal_pesan'=> "required|date|after_or_equal:today|before_or_equal:$maxDate",
         ]);
 
-        $qty3  = (int) ($request->qty_3kg ?? 0);
-        $qty12 = (int) ($request->qty_12kg ?? 0);
-
-        if (($qty3 + $qty12) <= 0) {
-            return back()->withErrors(['qty_3kg' => 'Minimal pesan 1 tabung (3kg atau 12kg).'])->withInput();
+        if ((int)$request->qty_3kg + (int)$request->qty_12kg <= 0) {
+            return back()->withErrors(['qty_3kg' => 'Minimal pilih 1 tabung (3kg/12kg).'])->withInput();
         }
 
-        // batas maksimal tanggal = 1 bulan dari hari ini
-        $maxDate = now()->addMonth()->toDateString();
-        if ($request->tanggal_pesan > $maxDate) {
-            return back()->withErrors(['tanggal_pesan' => 'Tanggal pesan maksimal 1 bulan dari hari ini.'])->withInput();
-        }
+        DB::transaction(function () use ($request) {
 
-        DB::transaction(function () use ($request, $qty3, $qty12) {
-
-            // kode otomatis: P001, P002, dst
+            // kode otomatis P001, P002...
             $lastKode = Pesanan::orderByRaw("CAST(SUBSTRING(kode, 2) AS UNSIGNED) DESC")->value('kode');
             $lastNumber = $lastKode ? (int) substr($lastKode, 1) : 0;
             $newKode = 'P' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
+            $total = (int)$request->qty_3kg + (int)$request->qty_12kg;
+
             $pesanan = Pesanan::create([
                 'kode'          => $newKode,
                 'pelanggan_id'  => $request->pelanggan_id,
-                'jumlah_tabung' => $qty3 + $qty12,
+                'jumlah_tabung' => $total,
                 'tanggal_pesan' => $request->tanggal_pesan,
                 'status'        => 'belum_dikirim',
             ]);
 
-            // simpan item 3kg
-            if ($qty3 > 0) {
-                PesananItem::create([
-                    'pesanan_id'   => $pesanan->id,
-                    'jenis_tabung' => '3kg',
-                    'qty'          => $qty3,
-                ]);
-            }
+            // simpan detail jenis tabung ke pesanan_items
+            PesananItem::updateOrCreate(
+                ['pesanan_id' => $pesanan->id, 'jenis_tabung' => '3kg'],
+                ['qty' => (int)$request->qty_3kg]
+            );
 
-            // simpan item 12kg
-            if ($qty12 > 0) {
-                PesananItem::create([
-                    'pesanan_id'   => $pesanan->id,
-                    'jenis_tabung' => '12kg',
-                    'qty'          => $qty12,
-                ]);
-            }
+            PesananItem::updateOrCreate(
+                ['pesanan_id' => $pesanan->id, 'jenis_tabung' => '12kg'],
+                ['qty' => (int)$request->qty_12kg]
+            );
 
-            // OPTIONAL: kalau kamu mau langsung buat record pengantaran saat pesanan dibuat
-            // Kalau belum mau assign kurir sekarang, bisa set kurir_id nullable (tapi migration kamu sekarang kurir_id wajib)
-            // Jadi untuk sekarang: TUNGGU monitoring assign kurir -> nanti kita atur di tahap monitoring.
+            // otomatis buat pengantaran (kurir dipilih nanti)
+            $lastResi = Pengantaran::orderByRaw("CAST(SUBSTRING(resi, 4) AS UNSIGNED) DESC")->value('resi');
+            $lastResiNum = $lastResi ? (int) substr($lastResi, 3) : 0;
+            $newResi = 'GCV' . str_pad($lastResiNum + 1, 3, '0', STR_PAD_LEFT);
+
+            Pengantaran::create([
+                'resi'       => $newResi,
+                'pesanan_id' => $pesanan->id,
+                'kurir_id'   => null,
+                'status'     => 'belum_dikirim',
+                'waktu_verifikasi' => null,
+            ]);
         });
 
         return redirect()->route('pesanan.index')->with('success', 'Pesanan berhasil ditambahkan!');
@@ -87,22 +84,22 @@ class PesananController extends Controller
 
     public function show(Pesanan $pesanan)
     {
-        $pesanan->load(['pelanggan', 'items', 'pengantaran.kurir']);
+        $pesanan->load(['pelanggan', 'pengantaran.kurir', 'items']);
         return view('pages.pesanan_detail', compact('pesanan'));
     }
 
-    // ADMIN BATALKAN PESANAN (tanpa hapus)
+    // batalkan pesanan (admin)
     public function cancel(Pesanan $pesanan)
     {
-        // Kalau sudah berhasil, biasanya tidak boleh dibatalkan (opsional aturan)
-        if ($pesanan->status === 'berhasil') {
-            return back()->with('success', 'Pesanan sudah berhasil, tidak bisa dibatalkan.');
-        }
-
         DB::transaction(function () use ($pesanan) {
+            // kalau sudah berhasil, jangan boleh dibatalkan
+            if ($pesanan->status === 'berhasil') {
+                return;
+            }
+
             $pesanan->update(['status' => 'dibatalkan']);
 
-            // kalau ada pengantaran, ikut dibatalkan (opsional)
+            // sekalian tandai pengantaran dibatalkan juga (biar monitoring konsisten)
             if ($pesanan->pengantaran) {
                 $pesanan->pengantaran->update([
                     'status' => 'dibatalkan',
@@ -111,6 +108,6 @@ class PesananController extends Controller
             }
         });
 
-        return redirect()->route('pesanan.show', $pesanan->id)->with('success', 'Pesanan dibatalkan.');
+        return redirect()->route('pesanan.show', $pesanan->id)->with('success', 'Pesanan berhasil dibatalkan!');
     }
 }

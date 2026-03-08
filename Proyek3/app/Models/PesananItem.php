@@ -13,7 +13,7 @@ class PesananItem extends Model
 
     protected $fillable = [
         'pesanan_id',
-        'jenis_tabung', // '3kg' | '12kg'
+        'jenis_tabung', // '3kg' / '12kg'
         'qty',
     ];
 

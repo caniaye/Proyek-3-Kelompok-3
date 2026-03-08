@@ -11,16 +11,7 @@
   <div class="card-soft">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="fw-semibold">Detail Pesanan</div>
-      <div class="d-flex gap-2">
-        @if($pesanan->status !== 'berhasil' && $pesanan->status !== 'dibatalkan')
-          <form method="POST" action="{{ route('pesanan.cancel', $pesanan->id) }}"
-                onsubmit="return confirm('Yakin batalkan pesanan ini?');">
-            @csrf
-            <button type="submit" class="btn-soft btn-dark">Batalkan</button>
-          </form>
-        @endif
-        <a href="{{ route('pesanan.index') }}" class="btn-soft btn-gray" style="text-decoration:none;">Kembali</a>
-      </div>
+      <a href="{{ route('pesanan.index') }}" class="btn-soft btn-gray" style="text-decoration:none;">Kembali</a>
     </div>
 
     <div class="row g-3">
@@ -47,6 +38,15 @@
             <span class="badge-pill b-warning">Belum Dikirim</span>
           @endif
         </div>
+
+        {{-- tombol batalkan --}}
+        @if($pesanan->status !== 'berhasil' && $pesanan->status !== 'dibatalkan')
+          <form method="POST" action="{{ route('pesanan.cancel', $pesanan->id) }}" onsubmit="return confirm('Yakin batalkan pesanan ini?')">
+            @csrf
+            @method('PATCH')
+            <button type="submit" class="btn-soft btn-dark">Batalkan Pesanan</button>
+          </form>
+        @endif
       </div>
     </div>
 
@@ -54,7 +54,7 @@
 
     <div class="fw-semibold mb-2">Info Pengantaran</div>
     <div class="mb-2"><b>Resi:</b> {{ $pesanan->pengantaran?->resi ?? '-' }}</div>
-    <div class="mb-2"><b>Kurir:</b> {{ $pesanan->pengantaran?->kurir?->nama ?? '-' }}</div>
+    <div class="mb-2"><b>Kurir:</b> {{ $pesanan->pengantaran?->kurir?->nama ?? 'Belum dipilih' }}</div>
     <div class="mb-2"><b>Status Pengantaran:</b>
       @php $st = $pesanan->pengantaran?->status; @endphp
       @if($st === 'berhasil')

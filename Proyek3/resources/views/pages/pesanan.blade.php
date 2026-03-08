@@ -5,22 +5,14 @@
 <style>
   .row-selectable { cursor: pointer; }
   .row-selected { background: rgba(120, 200, 190, 0.18) !important; }
+  .link-name { color:#222; text-decoration:none; font-weight:600; }
+  .link-name:hover { text-decoration:underline; }
 </style>
 
 <div class="panel">
 
   @if(session('success'))
     <div class="alert alert-success mb-3">{{ session('success') }}</div>
-  @endif
-
-  @if($errors->any())
-    <div class="alert alert-danger mb-3">
-      <ul class="mb-0">
-        @foreach($errors->all() as $e)
-          <li>{{ $e }}</li>
-        @endforeach
-      </ul>
-    </div>
   @endif
 
   <div class="d-flex justify-content-end gap-2 mb-3">
@@ -43,15 +35,18 @@
             <th>Nama Pelanggan</th>
             <th style="width:140px">ID Pesanan</th>
             <th>Alamat</th>
-            <th style="width:160px">Status</th>
+            <th style="width:170px">Status</th>
           </tr>
         </thead>
 
         <tbody>
           @forelse($pesanans as $ps)
-          <tr class="row-selectable"
-              data-detail-url="{{ route('pesanan.show', $ps->id) }}">
-            <td>{{ $ps->pelanggan?->nama ?? '-' }}</td>
+          <tr class="row-selectable" data-detail-url="{{ route('pesanan.show', $ps->id) }}">
+            <td>
+              <a class="link-name" href="{{ route('pesanan.show', $ps->id) }}">
+                {{ $ps->pelanggan?->nama ?? '-' }}
+              </a>
+            </td>
             <td>{{ $ps->kode }}</td>
             <td>{{ $ps->pelanggan?->alamat ?? '-' }}</td>
             <td>
@@ -78,6 +73,11 @@
   </div>
 </div>
 
+@php
+  $today = date('Y-m-d');
+  $maxDate = date('Y-m-d', strtotime('+1 month'));
+@endphp
+
 {{-- MODAL TAMBAH PESANAN --}}
 <div class="modal fade" id="modalTambahPesanan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -95,9 +95,7 @@
           <select name="pelanggan_id" class="form-control" required>
             <option value="">-- Pilih Pelanggan --</option>
             @foreach($pelanggans as $p)
-              <option value="{{ $p->id }}" {{ old('pelanggan_id') == $p->id ? 'selected' : '' }}>
-                {{ $p->nama }}
-              </option>
+              <option value="{{ $p->id }}">{{ $p->nama }}</option>
             @endforeach
           </select>
         </div>
@@ -105,28 +103,33 @@
         <div class="row g-2">
           <div class="col-md-6">
             <label class="form-label">Tabung 3kg</label>
-            <input type="number" name="qty_3kg" class="form-control" min="0" value="{{ old('qty_3kg', 0) }}">
+            <input type="number" name="qty_3kg" class="form-control" min="0" value="0" required>
           </div>
           <div class="col-md-6">
             <label class="form-label">Tabung 12kg</label>
-            <input type="number" name="qty_12kg" class="form-control" min="0" value="{{ old('qty_12kg', 0) }}">
+            <input type="number" name="qty_12kg" class="form-control" min="0" value="0" required>
           </div>
         </div>
 
-        <div class="mb-3 mt-3">
+        <div class="mt-3">
           <label class="form-label">Tanggal Pesan</label>
           <input
-            id="tanggal_pesan"
             type="date"
             name="tanggal_pesan"
             class="form-control"
-            value="{{ old('tanggal_pesan', date('Y-m-d')) }}"
-            required>
-          <div class="form-text">Tanggal hanya bisa dipilih sampai 1 bulan ke depan.</div>
+            value="{{ $today }}"
+            min="{{ $today }}"
+            max="{{ $maxDate }}"
+            required
+          >
+          <div class="form-text">
+            Tanggal hanya bisa dari <b>hari ini</b> sampai <b>1 bulan ke depan</b>.
+          </div>
         </div>
 
-        <div class="form-text">
-          ID Pesanan dibuat otomatis (P001, P002, dst). Status awal: <b>Belum Dikirim</b>
+        <div class="form-text mt-2">
+          ID Pesanan otomatis (P001, P002, dst). Status awal: <b>Belum Dikirim</b>.
+          Kurir dipilih nanti di <b>Monitoring</b>.
         </div>
       </div>
 
@@ -149,16 +152,13 @@
       rows.forEach(r => r.classList.remove('row-selected'));
     }
 
-    function setSelected(row) {
-      clearSelected();
-      row.classList.add('row-selected');
-      selectedUrl = row.dataset.detailUrl;
-      btnDetail.disabled = !selectedUrl;
-    }
-
     rows.forEach(row => {
-      row.addEventListener('click', function () {
-        setSelected(row);
+      row.addEventListener('click', function (e) {
+        // biar klik link nama tetap jalan, tapi row juga ke-select
+        clearSelected();
+        row.classList.add('row-selected');
+        selectedUrl = row.dataset.detailUrl;
+        btnDetail.disabled = !selectedUrl;
       });
 
       row.addEventListener('dblclick', function () {
@@ -170,27 +170,6 @@
     btnDetail.addEventListener('click', function () {
       if (selectedUrl) window.location.href = selectedUrl;
     });
-
-    // batas tanggal (hari ini s/d 1 bulan)
-    const inputDate = document.getElementById('tanggal_pesan');
-    if (inputDate) {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-
-      const min = `${yyyy}-${mm}-${dd}`;
-      const maxDate = new Date(today);
-      maxDate.setMonth(maxDate.getMonth() + 1);
-
-      const yyyy2 = maxDate.getFullYear();
-      const mm2 = String(maxDate.getMonth() + 1).padStart(2, '0');
-      const dd2 = String(maxDate.getDate()).padStart(2, '0');
-      const max = `${yyyy2}-${mm2}-${dd2}`;
-
-      inputDate.min = min;
-      inputDate.max = max;
-    }
   })();
 </script>
 @endsection
