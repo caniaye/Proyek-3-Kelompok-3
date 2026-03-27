@@ -71,6 +71,20 @@
       border: 1px solid #f0f0f0;
     }
 
+    /* Styling tambahan untuk Badge Notifikasi */
+    .notif-wrapper { position: relative; }
+    .notif-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #ff3b3b;
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 50%;
+        font-weight: bold;
+    }
+
     .badge-pill{
       border-radius: 999px;
       padding: 8px 16px;
@@ -109,12 +123,8 @@
 </head>
 <body>
 
-{{-- =========================
-     KALO SUDAH LOGIN
-========================= --}}
 @auth
 <div class="app-wrap">
-  {{-- SIDEBAR --}}
   <aside class="sidebar">
     <div class="brand">
       PANGKALAN LPG 3KG
@@ -148,15 +158,18 @@
     </nav>
   </aside>
 
-  {{-- MAIN --}}
   <main class="main">
-    {{-- TOPBAR --}}
     <header class="topbar">
-      <button class="btn btn-link text-secondary p-0" title="Notifikasi">
-        <i class="bi bi-bell fs-4"></i>
-      </button>
+      <div class="notif-wrapper">
+        <button class="btn btn-link text-secondary p-0" title="Notifikasi" id="notifBtn">
+            <i class="bi bi-bell fs-4"></i>
+            @if(session('success'))
+                <span class="notif-badge">1</span>
+            @endif
+        </button>
+      </div>
 
-      <div class="dropdown">
+      <div class="dropdown ms-3">
         <button class="btn btn-link text-secondary p-0" data-bs-toggle="dropdown" aria-expanded="false" title="Akun">
           <i class="bi bi-person-circle fs-4"></i>
         </button>
@@ -176,7 +189,6 @@
       </div>
     </header>
 
-    {{-- CONTENT --}}
     <section class="content">
       @yield('content')
     </section>
@@ -188,11 +200,6 @@
 </div>
 @endauth
 
-
-{{-- =========================
-     KALO BELUM LOGIN
-     (cuma nampilin content login)
-========================= --}}
 @guest
   <main style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;">
     <div style="width:min(980px, 100%);">
@@ -201,8 +208,48 @@
   </main>
 @endguest
 
-
+{{-- Scripts --}}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{{-- SweetAlert2 --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Logic Notifikasi Pop-up (SweetAlert2)
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: "{{ session('success') }}",
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            toast: true,
+            position: 'top-end'
+        });
+
+        // Jika lonceng diklik, munculkan detail pesan
+        document.getElementById('notifBtn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Notifikasi Terbaru',
+                text: "{{ session('success') }}",
+                icon: 'info'
+            });
+            // Hilangkan angka merah setelah dilihat
+            const badge = document.querySelector('.notif-badge');
+            if(badge) badge.style.display = 'none';
+        });
+    @else
+        document.getElementById('notifBtn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Tidak ada notifikasi baru',
+                icon: 'question',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        });
+    @endif
+</script>
+
 @stack('scripts')
 </body>
 </html>
