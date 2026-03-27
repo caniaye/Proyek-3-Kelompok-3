@@ -3,10 +3,32 @@
 
 @section('content')
 <style>
-  .row-selectable { cursor: pointer; }
-  .row-selected { background: rgba(120, 200, 190, 0.18) !important; }
-  .link-name { color:#222; text-decoration:none; font-weight:600; }
-  .link-name:hover { text-decoration:underline; }
+  .row-selectable { cursor: pointer; transition: all 0.2s; }
+
+  /* Warna hijau saat baris dipilih (One Click) */
+  tr.row-selected > td {
+    background-color: rgba(120, 200, 190, 0.25) !important;
+  }
+
+  /* Garis hijau di samping kiri saat dipilih */
+  tr.row-selected > td:first-child {
+    box-shadow: inset 4px 0 0 rgba(60, 170, 150, 0.9);
+  }
+
+  /* Menghilangkan garis bawah pada nama pelanggan */
+  .link-name { 
+    color: var(--text); 
+    text-decoration: none !important; 
+    font-weight: 600;
+    border: none;
+    outline: none;
+  }
+
+  /* Pastikan tidak ada underline saat hover juga */
+  .link-name:hover { 
+    text-decoration: none !important;
+    color: inherit;
+  }
 </style>
 
 <div class="panel">
@@ -43,9 +65,11 @@
           @forelse($pesanans as $ps)
           <tr class="row-selectable" data-detail-url="{{ route('pesanan.show', $ps->id) }}">
             <td>
-              <a class="link-name" href="{{ route('pesanan.show', $ps->id) }}">
-                {{ $ps->pelanggan?->nama ?? '-' }}
-              </a>
+              <div class="d-flex align-items-center gap-2">
+                <span class="link-name">
+                  {{ $ps->pelanggan?->nama ?? '-' }}
+                </span>
+              </div>
             </td>
             <td>{{ $ps->kode }}</td>
             <td>{{ $ps->pelanggan?->alamat ?? '-' }}</td>
@@ -113,23 +137,19 @@
 
         <div class="mt-3">
           <label class="form-label">Tanggal Pesan</label>
-          <input
-            type="date"
-            name="tanggal_pesan"
-            class="form-control"
+          <input 
+            type="date" 
+            name="tanggal_pesan" 
+            class="form-control" 
             value="{{ $today }}"
             min="{{ $today }}"
             max="{{ $maxDate }}"
             required
           >
-          <div class="form-text">
-            Tanggal hanya bisa dari <b>hari ini</b> sampai <b>1 bulan ke depan</b>.
-          </div>
         </div>
 
-        <div class="form-text mt-2">
+        <div class="form-text mt-3">
           ID Pesanan otomatis (P001, P002, dst). Status awal: <b>Belum Dikirim</b>.
-          Kurir dipilih nanti di <b>Monitoring</b>.
         </div>
       </div>
 
@@ -143,7 +163,7 @@
 </div>
 
 <script>
-  (function () {
+  document.addEventListener('DOMContentLoaded', function () {
     const rows = document.querySelectorAll('tr.row-selectable');
     const btnDetail = document.getElementById('btnDetail');
     let selectedUrl = null;
@@ -153,23 +173,28 @@
     }
 
     rows.forEach(row => {
-      row.addEventListener('click', function (e) {
-        // biar klik link nama tetap jalan, tapi row juga ke-select
+      // One Click: Baris jadi hijau & aktifkan tombol detail
+      row.addEventListener('click', function () {
         clearSelected();
         row.classList.add('row-selected');
+        
         selectedUrl = row.dataset.detailUrl;
-        btnDetail.disabled = !selectedUrl;
+        if (btnDetail) btnDetail.disabled = !selectedUrl;
       });
 
+      // Double Click: Langsung ke detail
       row.addEventListener('dblclick', function () {
         const url = row.dataset.detailUrl;
         if (url) window.location.href = url;
       });
     });
 
-    btnDetail.addEventListener('click', function () {
-      if (selectedUrl) window.location.href = selectedUrl;
-    });
-  })();
+    // Tombol Detail manual
+    if (btnDetail) {
+      btnDetail.addEventListener('click', function () {
+        if (selectedUrl) window.location.href = selectedUrl;
+      });
+    }
+  });
 </script>
 @endsection
