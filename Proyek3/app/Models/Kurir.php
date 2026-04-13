@@ -14,8 +14,13 @@ class Kurir extends Model
     protected $fillable = [
         'kode',
         'nama',
+        'password',
         'foto',
-        'status', // aktif / nonaktif / resign
+        'status',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 
     public function pengantarans()
@@ -28,6 +33,7 @@ class Kurir extends Model
         if ($this->foto) {
             return asset('storage/' . $this->foto);
         }
-        return asset('image/default-avatar.png'); // kamu sudah punya di public/image
+
+        return asset('image/default-avatar.png');
     }
 }

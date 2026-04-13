@@ -8,6 +8,16 @@
     <div class="alert alert-success mb-3">{{ session('success') }}</div>
   @endif
 
+  @if($errors->any())
+    <div class="alert alert-danger mb-3">
+      <ul class="mb-0 ps-3">
+        @foreach($errors->all() as $error)
+          <li>{{ $error }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
   <div class="d-flex justify-content-end mb-3">
     <button class="btn-soft btn-green" data-bs-toggle="modal" data-bs-target="#modalTambahKurir">
       Tambah
@@ -35,7 +45,6 @@
             <td>{{ $i + 1 }}</td>
             <td>{{ $kurir->kode }}</td>
 
-            {{-- ✅ Nama + Foto --}}
             <td>
               <div class="d-flex align-items-center gap-2">
                 <img src="{{ $kurir->fotoUrl() }}" alt="foto"
@@ -55,7 +64,6 @@
             </td>
 
             <td class="d-flex gap-2">
-
               @if($kurir->status === 'resign')
                 <button class="btn-soft btn-gray" disabled style="opacity:.55;cursor:not-allowed;">Edit</button>
                 <button class="btn-soft btn-dark" disabled style="opacity:.55;cursor:not-allowed;">Hapus</button>
@@ -79,7 +87,6 @@
                   <button type="submit" class="btn-soft btn-dark">Hapus</button>
                 </form>
               @endif
-
             </td>
           </tr>
           @empty
@@ -88,15 +95,11 @@
           </tr>
           @endforelse
         </tbody>
-
       </table>
     </div>
   </div>
 </div>
 
-{{-- =======================
-     MODAL TAMBAH KURIR
-======================= --}}
 <div class="modal fade" id="modalTambahKurir" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form class="modal-content" method="POST" action="{{ route('kurir.store') }}" enctype="multipart/form-data">
@@ -111,6 +114,12 @@
         <div class="mb-3">
           <label class="form-label">Nama Kurir</label>
           <input type="text" name="nama" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required minlength="6">
+          <div class="form-text">Minimal 6 karakter.</div>
         </div>
 
         <div class="mb-3">
@@ -140,9 +149,6 @@
   </div>
 </div>
 
-{{-- =======================
-     MODAL EDIT KURIR
-======================= --}}
 <div class="modal fade" id="modalEditKurir" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form id="formEditKurir" class="modal-content" method="POST" enctype="multipart/form-data">
@@ -164,6 +170,12 @@
         <div class="mb-3">
           <label class="form-label">Nama Kurir</label>
           <input type="text" id="edit_nama" name="nama" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Password Baru</label>
+          <input type="password" name="password" class="form-control" minlength="6">
+          <div class="form-text">Kosongkan jika tidak ingin mengganti password.</div>
         </div>
 
         <div class="mb-3">
@@ -208,7 +220,6 @@
       const status = btn.getAttribute('data-status');
 
       formEdit.action = `/kurir/${id}`;
-
       editKodeView.value = kode;
       editNama.value = nama;
       editStatus.value = status;
