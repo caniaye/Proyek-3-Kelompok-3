@@ -5,17 +5,14 @@
 <style>
   .row-selectable { cursor: pointer; transition: all 0.2s; }
 
-  /* Warna hijau saat baris dipilih (One Click) */
   tr.row-selected > td {
     background-color: rgba(120, 200, 190, 0.25) !important;
   }
 
-  /* Garis hijau di samping kiri saat dipilih */
   tr.row-selected > td:first-child {
     box-shadow: inset 4px 0 0 rgba(60, 170, 150, 0.9);
   }
 
-  /* Menghilangkan garis bawah pada nama pelanggan */
   .link-name { 
     color: var(--text); 
     text-decoration: none !important; 
@@ -24,7 +21,6 @@
     outline: none;
   }
 
-  /* Pastikan tidak ada underline saat hover juga */
   .link-name:hover { 
     text-decoration: none !important;
     color: inherit;
@@ -91,7 +87,6 @@
           </tr>
           @endforelse
         </tbody>
-
       </table>
     </div>
   </div>
@@ -102,7 +97,6 @@
   $maxDate = date('Y-m-d', strtotime('+1 month'));
 @endphp
 
-{{-- MODAL TAMBAH PESANAN --}}
 <div class="modal fade" id="modalTambahPesanan" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <form class="modal-content" method="POST" action="{{ route('pesanan.store') }}">
@@ -157,7 +151,6 @@
         <button type="button" class="btn-soft" data-bs-dismiss="modal">Batal</button>
         <button type="submit" class="btn-soft btn-green">Simpan</button>
       </div>
-
     </form>
   </div>
 </div>
@@ -173,28 +166,34 @@
     }
 
     rows.forEach(row => {
-      // One Click: Baris jadi hijau & aktifkan tombol detail
       row.addEventListener('click', function () {
         clearSelected();
         row.classList.add('row-selected');
-        
         selectedUrl = row.dataset.detailUrl;
         if (btnDetail) btnDetail.disabled = !selectedUrl;
       });
 
-      // Double Click: Langsung ke detail
       row.addEventListener('dblclick', function () {
         const url = row.dataset.detailUrl;
         if (url) window.location.href = url;
       });
     });
 
-    // Tombol Detail manual
     if (btnDetail) {
       btnDetail.addEventListener('click', function () {
         if (selectedUrl) window.location.href = selectedUrl;
       });
     }
+
+    setInterval(function () {
+      const modalOpen = document.querySelector('.modal.show');
+      const focused = document.activeElement;
+      const isTyping = focused && ['INPUT', 'SELECT', 'TEXTAREA'].includes(focused.tagName);
+
+      if (!modalOpen && !isTyping) {
+        window.location.reload();
+      }
+    }, 5000);
   });
 </script>
 @endsection

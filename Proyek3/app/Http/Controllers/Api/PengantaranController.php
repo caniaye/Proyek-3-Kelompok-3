@@ -50,6 +50,53 @@ class PengantaranController extends Controller
         ]);
     }
 
+    public function mulai($id)
+    {
+        $pengantaran = Pengantaran::with(['pesanan'])->find($id);
+
+        if (!$pengantaran) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Data pengantaran tidak ditemukan',
+            ], 404);
+        }
+
+        if ($pengantaran->status === 'berhasil') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Pengantaran sudah berhasil, tidak bisa dimulai ulang.',
+            ], 422);
+        }
+
+        if ($pengantaran->status === 'dibatalkan') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Pengantaran sudah dibatalkan.',
+            ], 422);
+        }
+
+        $pengantaran->update([
+            'status' => 'dalam_perjalanan',
+        ]);
+
+        if ($pengantaran->pesanan) {
+            $pengantaran->pesanan->update([
+                'status' => 'dalam_perjalanan',
+            ]);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Status pengantaran berubah menjadi dalam perjalanan.',
+            'data' => [
+                'pengantaran_id' => $pengantaran->id,
+                'pesanan_id' => $pengantaran->pesanan?->id,
+                'status_pengantaran' => $pengantaran->fresh()->status,
+                'status_pesanan' => $pengantaran->pesanan?->fresh()->status,
+            ],
+        ]);
+    }
+
     public function verifikasi(Request $request, $id)
     {
         $request->validate([

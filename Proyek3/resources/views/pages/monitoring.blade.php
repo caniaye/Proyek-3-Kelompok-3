@@ -69,9 +69,21 @@
           </tr>
           @endforelse
         </tbody>
-
       </table>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    setInterval(function () {
+      const focused = document.activeElement;
+      const isEditing = focused && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(focused.tagName);
+
+      if (!isEditing) {
+        window.location.reload();
+      }
+    }, 5000);
+  });
+</script>
 @endsection
