@@ -17,6 +17,7 @@ class Pengantaran extends Model
         'kurir_id',
         'status',
         'waktu_verifikasi',
+        'foto_verifikasi',
     ];
 
     public function pesanan()

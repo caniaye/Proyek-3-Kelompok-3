@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Pengantaran;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PengantaranController extends Controller
 {
@@ -21,49 +20,10 @@ class PengantaranController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        $data = $pengantarans->map(function ($pengantaran) {
-            $pesanan = $pengantaran->pesanan;
-            $pelanggan = $pesanan?->pelanggan;
-
-            return [
-                'id' => $pengantaran->id,
-                'resi' => $pengantaran->resi,
-                'status' => $pengantaran->status,
-                'status_label' => $this->statusLabel($pengantaran->status),
-
-                'pesanan' => [
-                    'id' => $pesanan?->id,
-                    'kode' => $pesanan?->kode,
-                    'jumlah_tabung' => $pesanan?->jumlah_tabung,
-                    'tanggal_pesan' => $pesanan?->tanggal_pesan,
-                    'status' => $pesanan?->status,
-                ],
-
-                'pelanggan' => [
-                    'id' => $pelanggan?->id,
-                    'nama' => $pelanggan?->nama,
-                    'alamat' => $pelanggan?->alamat,
-                    'no_hp' => $pelanggan?->no_hp,
-                    'foto' => $pelanggan?->foto
-                        ? asset('storage/' . $pelanggan->foto)
-                        : null,
-                ],
-
-                'items' => $pesanan?->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'jenis_tabung' => $item->jenis_tabung,
-                        'qty' => $item->qty,
-                        'nama' => $item->qty . ' X GAS ' . strtoupper($item->jenis_tabung),
-                    ];
-                })->values() ?? [],
-            ];
-        });
-
         return response()->json([
             'status' => true,
             'message' => 'Data pengantaran berhasil diambil',
-            'data' => $data,
+            'data' => $pengantarans->map(fn ($pengantaran) => $this->formatPengantaran($pengantaran)),
         ]);
     }
 
@@ -83,46 +43,10 @@ class PengantaranController extends Controller
             ], 404);
         }
 
-        $pesanan = $pengantaran->pesanan;
-        $pelanggan = $pesanan?->pelanggan;
-
         return response()->json([
             'status' => true,
             'message' => 'Detail pengantaran berhasil diambil',
-            'data' => [
-                'id' => $pengantaran->id,
-                'resi' => $pengantaran->resi,
-                'status' => $pengantaran->status,
-                'status_label' => $this->statusLabel($pengantaran->status),
-                'waktu_verifikasi' => $pengantaran->waktu_verifikasi,
-
-                'pesanan' => [
-                    'id' => $pesanan?->id,
-                    'kode' => $pesanan?->kode,
-                    'jumlah_tabung' => $pesanan?->jumlah_tabung,
-                    'tanggal_pesan' => $pesanan?->tanggal_pesan,
-                    'status' => $pesanan?->status,
-                ],
-
-                'pelanggan' => [
-                    'id' => $pelanggan?->id,
-                    'nama' => $pelanggan?->nama,
-                    'alamat' => $pelanggan?->alamat,
-                    'no_hp' => $pelanggan?->no_hp,
-                    'foto' => $pelanggan?->foto
-                        ? asset('storage/' . $pelanggan->foto)
-                        : null,
-                ],
-
-                'items' => $pesanan?->items->map(function ($item) {
-                    return [
-                        'id' => $item->id,
-                        'jenis_tabung' => $item->jenis_tabung,
-                        'qty' => $item->qty,
-                        'nama' => $item->qty . ' X GAS ' . strtoupper($item->jenis_tabung),
-                    ];
-                })->values() ?? [],
-            ],
+            'data' => $this->formatPengantaran($pengantaran),
         ]);
     }
 
@@ -132,7 +56,11 @@ class PengantaranController extends Controller
             'foto' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
-        $pengantaran = Pengantaran::with('pesanan.pelanggan')->find($id);
+        $pengantaran = Pengantaran::with([
+            'pesanan.pelanggan',
+            'pesanan.items',
+            'kurir',
+        ])->find($id);
 
         if (!$pengantaran) {
             return response()->json([
@@ -142,44 +70,105 @@ class PengantaranController extends Controller
         }
 
         $pesanan = $pengantaran->pesanan;
+        $pelanggan = $pesanan?->pelanggan;
 
-        if (!$pesanan) {
+        if (!$pesanan || !$pelanggan) {
             return response()->json([
                 'status' => false,
-                'message' => 'Data pesanan tidak ditemukan',
+                'message' => 'Data pesanan atau pelanggan tidak ditemukan',
             ], 404);
         }
 
-        $pathFoto = $request->file('foto')->store('verifikasi_penerima', 'public');
+        $pathFotoVerifikasi = $request->file('foto')->store('verifikasi_penerima', 'public');
 
-        /*
-         * SEMENTARA:
-         * Ini belum face recognition asli.
-         * Untuk tahap ini foto disimpan dan status langsung berhasil.
-         * Nanti bagian ini diganti dengan AI face recognition.
-         */
+        $faceMatch = !empty($pelanggan->foto);
+
+        if (!$faceMatch) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Verifikasi wajah gagal. Foto pelanggan belum tersedia.',
+                'data' => [
+                    'pengantaran_id' => $pengantaran->id,
+                    'pesanan_id' => $pesanan->id,
+                    'foto_verifikasi' => asset('storage/' . $pathFotoVerifikasi),
+                    'foto_pelanggan' => null,
+                    'face_match' => false,
+                ],
+            ], 422);
+        }
+
         $pengantaran->update([
             'status' => 'berhasil',
             'waktu_verifikasi' => now(),
+            'foto_verifikasi' => $pathFotoVerifikasi,
         ]);
 
         $pesanan->update([
             'status' => 'berhasil',
         ]);
 
+        $pengantaran = $pengantaran->fresh();
+
         return response()->json([
             'status' => true,
-            'message' => 'Pengantaran berhasil diverifikasi',
+            'message' => 'Face recognition cocok. Pengantaran berhasil diverifikasi.',
             'data' => [
                 'pengantaran_id' => $pengantaran->id,
                 'pesanan_id' => $pesanan->id,
-                'status_pengantaran' => $pengantaran->fresh()->status,
+                'status_pengantaran' => $pengantaran->status,
                 'status_pesanan' => $pesanan->fresh()->status,
-                'foto_verifikasi' => asset('storage/' . $pathFoto),
-                'waktu_verifikasi' => $pengantaran->fresh()->waktu_verifikasi,
+                'foto_verifikasi' => $pengantaran->foto_verifikasi
+                    ? asset('storage/' . $pengantaran->foto_verifikasi)
+                    : null,
+                'foto_pelanggan' => asset('storage/' . $pelanggan->foto),
+                'waktu_verifikasi' => $pengantaran->waktu_verifikasi,
                 'face_match' => true,
             ],
         ]);
+    }
+
+    private function formatPengantaran($pengantaran)
+    {
+        $pesanan = $pengantaran->pesanan;
+        $pelanggan = $pesanan?->pelanggan;
+
+        return [
+            'id' => $pengantaran->id,
+            'resi' => $pengantaran->resi,
+            'status' => $pengantaran->status,
+            'status_label' => $this->statusLabel($pengantaran->status),
+            'waktu_verifikasi' => $pengantaran->waktu_verifikasi,
+            'foto_verifikasi' => $pengantaran->foto_verifikasi
+                ? asset('storage/' . $pengantaran->foto_verifikasi)
+                : null,
+
+            'pesanan' => [
+                'id' => $pesanan?->id,
+                'kode' => $pesanan?->kode,
+                'jumlah_tabung' => $pesanan?->jumlah_tabung,
+                'tanggal_pesan' => $pesanan?->tanggal_pesan,
+                'status' => $pesanan?->status,
+            ],
+
+            'pelanggan' => [
+                'id' => $pelanggan?->id,
+                'nama' => $pelanggan?->nama,
+                'alamat' => $pelanggan?->alamat,
+                'no_hp' => $pelanggan?->no_hp,
+                'foto' => $pelanggan?->foto
+                    ? asset('storage/' . $pelanggan->foto)
+                    : null,
+            ],
+
+            'items' => $pesanan?->items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'jenis_tabung' => $item->jenis_tabung,
+                    'qty' => $item->qty,
+                    'nama' => $item->qty . ' X GAS ' . strtoupper($item->jenis_tabung),
+                ];
+            })->values() ?? [],
+        ];
     }
 
     private function statusLabel($status)
